@@ -1,13 +1,13 @@
-# LA11: Finish Your Own CRUD
+# LA12: Make the Failures Yours
 
-## G1: Route model binding
+## H1: Why the error pointed at vendor
 
-Binding needs two things: the controller parameter is type-hinted with the model (`Movie $movie`), and its name matches the route segment `{movie}`. With the type-hint but a wrong name, Laravel can't match a record and hands my method an empty `Movie` object, so my edit form opens blank. With the right name but no type-hint, I only get the raw id from the URL, not a record.
+The top of the error page named a file inside `vendor` because that is where Laravel's code actually threw the exception when it received my call to `withh()`. My mistake was in my own `MovieController.php`, in `index()`, at the line the Exception trace had already opened for me further down the page.
 
-## G2: Delete link
+## H2: What the log line tells me later
 
-My Delete link goes to `/movies/{id}`, which is the right address, but a link can only send a GET request. In my project that address answered as the show route, not destroy, because destroy only answers the DELETE verb. I needed a form with `@method('DELETE')` to send the correct verb.
+My `Log::info('Movie saved', [...])` line records the id and title of each movie that was saved, with the time. Next month it can tell me which record was created and when, which the error page can't, because that page only appears for one visitor at the moment something fails.
 
-## G3: old() second argument
+## H3: 403 versus redirect
 
-On my edit form, `old('title', $movie->title)` shows the typed value after a failed submit, and the saved value otherwise. Without the second argument, the form opens empty, as in my screenshot 3. With only the second argument (no `old()`), a rejected edit would throw away what I typed and bring back the original title.
+My guard answers 403 when deleting the last movie in a genre, because that rule can never succeed and the request is simply not allowed. A redirect back with a message is better when the visitor can fix it and try again, like a form with a missing field.

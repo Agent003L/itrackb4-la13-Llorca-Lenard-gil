@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Log;
 use App\Models\Genre;
 use App\Models\Movie;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class MovieController extends Controller
         $genres = Genre::all();
         $years  = Movie::select('year')->distinct()->orderBy('year')->pluck('year');
 
-        $query = Movie::with('genre');            
+           $query = Movie::with('genre');
 
         if ($genre) {
             $query = $query->where('genre_id', $genre);
@@ -68,9 +68,15 @@ class MovieController extends Controller
             'notes'      => 'nullable|string',
         ]);
 
-        Movie::create($validated);
+        $movie = Movie::create($validated);
+
+        Log::info('Movie saved', [
+        'id'    => $movie->id,
+        'title' => $movie->title,
+        ]);
 
         return redirect('/movies');
+
     }
 
     public function edit(Movie $movie)
@@ -98,6 +104,8 @@ class MovieController extends Controller
 
     public function destroy(Movie $movie)
     {
+        abort_if($movie->genre->movies()->count() === 1, 403);
+
         $movie->delete();
 
         return redirect()->route('movies.index');

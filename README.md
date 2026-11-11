@@ -1,13 +1,13 @@
-# LA12: Make the Failures Yours
+# LA13: Open the Front Door
 
-## H1: Why the error pointed at vendor
+## J1: HomeController vs a resource index()
 
-The top of the error page named a file inside `vendor` because that is where Laravel's code actually threw the exception when it received my call to `withh()`. My mistake was in my own `MovieController.php`, in `index()`, at the line the Exception trace had already opened for me further down the page.
+A resource `index()` loads a list of records from the database through a model, and it usually deals with the query string (search, filter, page) before returning the view. My `HomeController::index()` does neither: it only counts two tables and returns the front page.
 
-## H2: What the log line tells me later
+## J2: Pagination links and the search term
 
-My `Log::info('Movie saved', [...])` line records the id and title of each movie that was saved, with the time. Next month it can tell me which record was created and when, which the error page can't, because that page only appears for one visitor at the moment something fails.
+Before I added `withQueryString()`, the page links contained only `?page=2`. The controller therefore received no `search`, `genre` or `watched` value, so it treated the request as unfiltered and returned the full list with an empty search box.
 
-## H3: 403 versus redirect
+## J3: A misspelled sort value
 
-My guard answers 403 when deleting the last movie in a genre, because that rule can never succeed and the request is simply not allowed. A redirect back with a message is better when the visitor can fix it and try again, like a form with a missing field.
+A misspelled sort value like `?sort=titel` doesn't throw an error in SQLite. The page just loads in no particular order, so nobody notices or reports it, which is worse than a visible error. My allowed list (`title`, `year`, `director`) falls back to `title` for anything else, so the list always sorts.

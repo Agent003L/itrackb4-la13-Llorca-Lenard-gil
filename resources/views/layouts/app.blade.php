@@ -8,12 +8,7 @@
 </head>
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand navbar-dark bg-dark mb-4 shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('movies.index') }}">&#127916; Movies List</a>
-            @include('partials._nav')
-        </div>
-    </nav>
+    @include('partials._nav')
 
     <main class="container pb-5">
         @if (session('success'))

@@ -1,40 +1,44 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Log;
 use App\Models\Genre;
 use App\Models\Movie;
 use Illuminate\Http\Request;
 
-
-
 class MovieController extends Controller
 {
     public function index(Request $request)
     {
-        $genre = $request->query('genre');   
-        $year  = $request->query('year');
+        $search  = $request->query('search');
+        $genre   = $request->query('genre');
+        $watched = $request->query('watched');
+        $sort    = $request->query('sort', 'title');
+
+        if (! in_array($sort, ['title', 'year', 'director'])) {
+            $sort = 'title';
+        }
 
         $genres = Genre::all();
-        $years  = Movie::select('year')->distinct()->orderBy('year')->pluck('year');
 
-           $query = Movie::with('genre');
+        $query = Movie::with('genre');
 
+        if ($search) {
+            $query = $query->where('title', 'like', "%{$search}%");
+        }
         if ($genre) {
             $query = $query->where('genre_id', $genre);
         }
-        if ($year) {
-            $query = $query->where('year', $year);
+        if ($watched !== null && $watched !== '') {
+            $query = $query->where('is_watched', (int) $watched);
         }
 
-        $movies = $query->get();
+        $movies = $query->orderBy($sort)->paginate(8)->withQueryString();
 
         return view('movies.index', [
-            'movies'      => $movies,
-            'genres'      => $genres,
-            'years'       => $years,
-            'activeGenre' => $genre,
-            'activeYear'  => $year,
+            'movies' => $movies,
+            'genres' => $genres,
         ]);
     }
 
@@ -71,12 +75,11 @@ class MovieController extends Controller
         $movie = Movie::create($validated);
 
         Log::info('Movie saved', [
-        'id'    => $movie->id,
-        'title' => $movie->title,
+            'id'    => $movie->id,
+            'title' => $movie->title,
         ]);
 
         return redirect('/movies');
-
     }
 
     public function edit(Movie $movie)
